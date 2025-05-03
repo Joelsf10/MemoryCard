@@ -40,7 +40,6 @@ class GameState(config: GameConfiguration) : ViewModel() {
         selectedIndices.clear()
         isClickEnabled = true
 
-        // Asegurarnos que tenemos entre 4 y 10 tipos de cartas
         val numPairs = min(max(config.numCardTypes, 4), 10)
         val imageResources = listOf(
             R.drawable.water,

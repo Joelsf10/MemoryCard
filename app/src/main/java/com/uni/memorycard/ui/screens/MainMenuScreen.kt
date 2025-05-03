@@ -116,7 +116,7 @@ fun MainMenuScreen(
                     style = MaterialTheme.typography.titleLarge
                 )
             }
-            // Decoración opcional (usando color secundario)
+            // Decoración
             Box(
                 modifier = Modifier
                     .fillMaxWidth()

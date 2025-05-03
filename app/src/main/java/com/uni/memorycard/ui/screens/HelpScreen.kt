@@ -73,7 +73,7 @@ fun HelpScreen(onBack: () -> Unit) {
                 }
             }
 
-            // Texto adicional opcional
+            // Texto adicional
             Text(
                 text = "¡Cuantos menos errores y menos tiempo, mejor!",
                 style = MaterialTheme.typography.bodyMedium.copy(
