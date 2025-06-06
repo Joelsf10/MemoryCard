@@ -49,6 +49,7 @@ import com.uni.memorycard.ui.model.GameConfiguration
 import com.uni.memorycard.ui.model.GameResult
 import com.uni.memorycard.ui.model.GameState
 import com.uni.memorycard.ui.model.GameStateFactory
+import com.uni.memorycard.ui.utils.LocalDatabase
 import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -63,6 +64,7 @@ fun GameScreen(
     var elapsedTime by remember { mutableStateOf(0) }
     var showResetDialog by remember { mutableStateOf(false) }
     var isTimerRunning by remember { mutableStateOf(true) }
+    val database = LocalDatabase.current
 
     // Temporizador
     LaunchedEffect(isTimerRunning) {
@@ -73,15 +75,16 @@ fun GameScreen(
                     elapsedTime++
                 } else {
                     isTimerRunning = false
-                    onGameEnd(
-                        GameResult(
-                            playerName = config.playerName,
-                            numCardTypes = config.numCardTypes,
-                            timeSeconds = elapsedTime,
-                            errorCount = gameState.errorCount,
-                            isWinner = true
-                        )
+                    val result = GameResult(
+                        playerName = config.playerName,
+                        numCardTypes = config.numCardTypes,
+                        timeSeconds = elapsedTime,
+                        errorCount = gameState.errorCount,
+                        isWinner = true
                     )
+                    onGameEnd(result)
+                    // Guardar en la base de datos
+                    database.gameResultDao().insert(result)
                 }
             }
         }

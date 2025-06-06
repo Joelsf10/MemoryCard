@@ -5,6 +5,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
 import com.uni.memorycard.ui.model.GameConfiguration
 import com.uni.memorycard.ui.model.GameResult
@@ -22,6 +23,7 @@ fun MemoryCardNavigation() {
             MainMenuScreen(
                 onPlay = { navController.navigate("config") },
                 onHelp = { navController.navigate("help") },
+                onHistory = {navController.navigate("history") },
                 onExit = {
                     if (context is ComponentActivity){
                         context.finish()
@@ -64,6 +66,10 @@ fun MemoryCardNavigation() {
 
         composable("help") {
             HelpScreen { navController.popBackStack() }
+        }
+
+        composable("history") {
+            HistoryScreen { navController.popBackStack() }
         }
     }
 }

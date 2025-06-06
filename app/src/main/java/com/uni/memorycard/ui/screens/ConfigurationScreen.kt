@@ -21,23 +21,28 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import com.uni.memorycard.ui.model.GameConfiguration
+import com.uni.memorycard.ui.utils.LocalUserPreferences
+import kotlinx.coroutines.launch
 
 @Composable
 fun ConfigurationScreen(
     onStart: (GameConfiguration) -> Unit,
     onBack: () -> Unit
 ) {
+    val userPreferences = LocalUserPreferences.current
+    val playerName by userPreferences.playerName.collectAsState(initial = "")
     val colorScheme = MaterialTheme.colorScheme
-    var playerName by remember { mutableStateOf("") }
     var numCardTypes by remember { mutableStateOf(4) }
     val gridColumns = remember(numCardTypes) {
         when {
@@ -45,6 +50,7 @@ fun ConfigurationScreen(
             else -> "5x4 (20 cartas)"
         }
     }
+    val coroutineScope = rememberCoroutineScope()
 
     Column(
         modifier = Modifier
@@ -65,7 +71,11 @@ fun ConfigurationScreen(
         // Campo de nombre
         OutlinedTextField(
             value = playerName,
-            onValueChange = { playerName = it },
+            onValueChange = {
+                coroutineScope.launch {
+                    userPreferences.updatePlayerName(it)
+                }
+            },
             label = { Text("Tu nombre") },
             modifier = Modifier
                 .fillMaxWidth()

@@ -28,6 +28,7 @@ import androidx.compose.ui.unit.dp
 fun MainMenuScreen(
     onPlay: () -> Unit,
     onHelp: () -> Unit,
+    onHistory: () -> Unit,
     onExit: () -> Unit
 ) {
     val colorScheme = MaterialTheme.colorScheme
@@ -95,6 +96,22 @@ fun MainMenuScreen(
                     "Cómo Jugar",
                     style = MaterialTheme.typography.titleLarge
                 )
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            OutlinedButton(
+                onClick = onHistory,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(60.dp),
+                colors = ButtonDefaults.outlinedButtonColors(
+                    contentColor = MaterialTheme.colorScheme.secondary
+                ),
+                border = BorderStroke(2.dp, MaterialTheme.colorScheme.secondary),
+                shape = buttonShape
+            ) {
+                Text("Ver Historial")
             }
 
             Spacer(modifier = Modifier.height(24.dp))
