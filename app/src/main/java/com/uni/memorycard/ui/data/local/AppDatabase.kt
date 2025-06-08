@@ -1,10 +1,11 @@
-package com.uni.memorycard.ui.data.local
+package com.uni.memorycard.data.local
 
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
-import android.content.Context
 import androidx.room.TypeConverters
+import android.content.Context
+import com.uni.memorycard.ui.data.local.GameResultDao
 import com.uni.memorycard.ui.model.GameResult
 
 @Database(entities = [GameResult::class], version = 1, exportSchema = true)

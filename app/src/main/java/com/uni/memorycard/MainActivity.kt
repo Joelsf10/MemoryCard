@@ -7,7 +7,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.preferencesDataStoreFile
-import com.uni.memorycard.ui.data.local.AppDatabase
+import com.uni.memorycard.data.local.AppDatabase
 import com.uni.memorycard.ui.data.preferences.UserPreferences
 import com.uni.memorycard.ui.screens.MemoryCardNavigation
 import com.uni.memorycard.ui.theme.MemoryCardTheme

@@ -1,7 +1,9 @@
-package com.uni.memorycard.ui.data.local
+package com.uni.memorycard.data.local
 
 import androidx.room.TypeConverter
+import com.uni.memorycard.ui.model.GameConfiguration
 import java.util.Date
+
 
 class Converters {
     @TypeConverter

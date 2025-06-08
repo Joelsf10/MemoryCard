@@ -34,7 +34,6 @@ import androidx.compose.ui.unit.dp
 import com.uni.memorycard.ui.model.GameConfiguration
 import com.uni.memorycard.ui.utils.LocalUserPreferences
 import kotlinx.coroutines.launch
-
 @Composable
 fun ConfigurationScreen(
     onStart: (GameConfiguration) -> Unit,
@@ -42,15 +41,11 @@ fun ConfigurationScreen(
 ) {
     val userPreferences = LocalUserPreferences.current
     val playerName by userPreferences.playerName.collectAsState(initial = "")
-    val colorScheme = MaterialTheme.colorScheme
-    var numCardTypes by remember { mutableStateOf(4) }
-    val gridColumns = remember(numCardTypes) {
-        when {
-            numCardTypes <= 6 -> "4x4 (16 cartas)"
-            else -> "5x4 (20 cartas)"
-        }
-    }
+    val savedCardTypes by userPreferences.numCardTypes.collectAsState(initial = 4)
+
+    var numCardTypes by remember { mutableStateOf(savedCardTypes) }
     val coroutineScope = rememberCoroutineScope()
+    val colorScheme = MaterialTheme.colorScheme
 
     Column(
         modifier = Modifier
@@ -58,7 +53,6 @@ fun ConfigurationScreen(
             .padding(24.dp)
             .verticalScroll(rememberScrollState())
     ) {
-        // Título
         Text(
             text = "Configuración",
             style = MaterialTheme.typography.headlineLarge.copy(
@@ -68,7 +62,6 @@ fun ConfigurationScreen(
             modifier = Modifier.padding(bottom = 24.dp)
         )
 
-        // Campo de nombre
         OutlinedTextField(
             value = playerName,
             onValueChange = {
@@ -85,57 +78,32 @@ fun ConfigurationScreen(
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done)
         )
 
-        // Selector de pares
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 8.dp)
-        ) {
-            Text(
-                text = "Número de pares distintos: $numCardTypes",
-                style = MaterialTheme.typography.titleMedium
-            )
-
-            Slider(
-                value = numCardTypes.toFloat(),
-                onValueChange = { numCardTypes = it.toInt() },
-                valueRange = 4f..10f,
-                steps = 6,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 8.dp)
-            )
-
-            // Indicador visual de los valores posibles
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                (4..10).forEach { value ->
-                    Text(
-                        text = "$value",
-                        color = if (numCardTypes == value) colorScheme.primary
-                        else colorScheme.onSurface.copy(alpha = 0.5f),
-                        modifier = Modifier.clickable { numCardTypes = value }
-                    )
+        Text("Número de pares distintos: $numCardTypes")
+        Slider(
+            value = numCardTypes.toFloat(),
+            onValueChange = {
+                numCardTypes = it.toInt()
+                coroutineScope.launch {
+                    userPreferences.updateNumCardTypes(numCardTypes)
                 }
-            }
-        }
+            },
+            valueRange = 4f..10f,
+            steps = 6
+        )
 
-        // Info tamaño del tablero
         Card(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(vertical = 16.dp),
             shape = RoundedCornerShape(12.dp)
         ) {
+            val boardSize = if (numCardTypes <= 6) "4x4 (16 cartas)" else "5x4 (20 cartas)"
             Text(
-                text = "Tamaño del tablero: $gridColumns",
+                text = "Tamaño del tablero: $boardSize",
                 modifier = Modifier.padding(16.dp)
             )
         }
 
-        // Botones inferiores
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -153,17 +121,12 @@ fun ConfigurationScreen(
 
             Button(
                 onClick = {
-                    onStart(
-                        GameConfiguration(
-                            playerName = playerName,
-                            numCardTypes = numCardTypes
-                        )
-                    )
+                    onStart(GameConfiguration(playerName, numCardTypes))
                 },
                 enabled = playerName.isNotBlank(),
                 modifier = Modifier.weight(1f)
             ) {
-                Text("Comenzar")
+                Text("Iniciar partida")
             }
         }
     }

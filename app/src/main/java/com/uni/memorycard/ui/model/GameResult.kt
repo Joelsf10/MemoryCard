@@ -2,8 +2,7 @@ package com.uni.memorycard.ui.model
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import java.util.Date
-
+import java.util.*
 
 @Entity(tableName = "game_results")
 data class GameResult(

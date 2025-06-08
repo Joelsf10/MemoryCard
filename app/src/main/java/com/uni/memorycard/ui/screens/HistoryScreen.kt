@@ -25,7 +25,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.uni.memorycard.ui.data.local.AppDatabase
+import com.uni.memorycard.data.local.AppDatabase
 import com.uni.memorycard.ui.model.GameResult
 import java.text.SimpleDateFormat
 

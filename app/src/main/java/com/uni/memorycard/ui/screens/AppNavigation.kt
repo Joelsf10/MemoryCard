@@ -9,6 +9,9 @@ import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
 import com.uni.memorycard.ui.model.GameConfiguration
 import com.uni.memorycard.ui.model.GameResult
+import com.uni.memorycard.ui.utils.LocalUserPreferences
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.firstOrNull
 
 
 @Composable
@@ -16,20 +19,42 @@ fun MemoryCardNavigation() {
     val navController = rememberNavController()
     var currentConfig by remember { mutableStateOf(GameConfiguration()) }
     var gameResult by remember { mutableStateOf<GameResult?>(null) }
+    val userPreferences = LocalUserPreferences.current
     val context = LocalContext.current
 
     NavHost(navController, startDestination = "main") {
         composable("main") {
+            var navigateToGame by remember { mutableStateOf(false) }
+
+            if (navigateToGame) {
+                // Efecto para recuperar preferencias y navegar solo cuando se activa
+                LaunchedEffect(Unit) {
+                    val config = combine(
+                        userPreferences.playerName,
+                        userPreferences.numCardTypes
+                    ) { name, num -> GameConfiguration(name, num) }
+                        .firstOrNull()
+
+                    config?.let {
+                        currentConfig = it
+                        navController.navigate("game")
+                        navigateToGame = false // reseteamos el trigger
+                    }
+                }
+            }
+
             MainMenuScreen(
-                onPlay = { navController.navigate("config") },
+                onPlay = {
+                    navigateToGame = true
+                },
                 onHelp = { navController.navigate("help") },
-                onHistory = {navController.navigate("history") },
+                onHistory = { navController.navigate("history") },
                 onExit = {
-                    if (context is ComponentActivity){
+                    if (context is ComponentActivity) {
                         context.finish()
                     }
-
-                }
+                },
+                onConfig = { navController.navigate("config") }
             )
         }
 
