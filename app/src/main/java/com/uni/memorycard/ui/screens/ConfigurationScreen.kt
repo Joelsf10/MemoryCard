@@ -1,8 +1,8 @@
 package com.uni.memorycard.ui.screens
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -12,19 +12,21 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.material3.Button
-import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuDefaults.outlinedTextFieldColors
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
+import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -39,6 +41,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ConfigurationScreen(
     onStart: (GameConfiguration) -> Unit,
@@ -66,34 +69,69 @@ fun ConfigurationScreen(
     val windowSize = rememberWindowSizeClass()
     val isExpanded = windowSize >= WindowWidthSizeClass.Medium
 
+    val spacing = 20.dp
+
     if (isExpanded) {
-        Row(modifier = Modifier.fillMaxSize().padding(24.dp)) {
-            // Izquierda: formulario
+        Row(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(32.dp)
+        ) {
+            // Formulario Izquierda
             Column(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(end = 24.dp),
+                verticalArrangement = Arrangement.spacedBy(spacing)
             ) {
-                Text(text = "Configuración de Partida", style = MaterialTheme.typography.headlineMedium)
+                Text(
+                    text = "Configuración de Partida",
+                    style = MaterialTheme.typography.headlineLarge,
+                    color = MaterialTheme.colorScheme.primary
+                )
 
                 OutlinedTextField(
                     value = nombre,
                     onValueChange = { nombre = it },
                     label = { Text("Nombre del jugador") },
                     singleLine = true,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = outlinedTextFieldColors(
+                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                        cursorColor = MaterialTheme.colorScheme.primary
+                    )
                 )
 
-                Text("Número de tipos de carta")
+                Text(
+                    "Número de tipos de carta",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
                 Slider(
                     value = numCartas.toFloat(),
                     onValueChange = { numCartas = it.toInt() },
                     valueRange = 4f..10f,
-                    steps = 10
+                    steps = 6,
+                    colors = SliderDefaults.colors(
+                        activeTrackColor = MaterialTheme.colorScheme.primary,
+                        thumbColor = MaterialTheme.colorScheme.primary
+                    )
                 )
-                Text("$numCartas tipos")
+                Text(
+                    "$numCartas tipos",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.secondary
+                )
 
-                Text("Dificultad")
-                Row {
+                Text(
+                    "Dificultad",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
                     GameDifficulty.values().forEach { diff ->
                         Row(
                             Modifier
@@ -101,10 +139,24 @@ fun ConfigurationScreen(
                                     selected = diff == dificultad,
                                     onClick = { dificultad = diff }
                                 )
-                                .padding(end = 8.dp)
+                                .padding(4.dp),
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
-                            RadioButton(selected = diff == dificultad, onClick = null)
-                            Text(text = diff.name)
+                            RadioButton(
+                                selected = diff == dificultad,
+                                onClick = null,
+                                colors = RadioButtonDefaults.colors(
+                                    selectedColor = MaterialTheme.colorScheme.primary
+                                )
+                            )
+                            Text(
+                                text = diff.name,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = if (diff == dificultad)
+                                    MaterialTheme.colorScheme.primary
+                                else
+                                    MaterialTheme.colorScheme.onSurfaceVariant
+                            )
                         }
                     }
                 }
@@ -120,57 +172,129 @@ fun ConfigurationScreen(
                         }
                         onStart(GameConfiguration(nombre, numCartas, dificultad))
                     },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = MaterialTheme.shapes.medium,
+                    contentPadding = PaddingValues(vertical = 14.dp)
                 ) {
-                    Text("Jugar")
+                    Text(
+                        "Jugar",
+                        style = MaterialTheme.typography.titleMedium
+                    )
                 }
             }
 
             Spacer(modifier = Modifier.width(32.dp))
 
-            // Derecha: vista previa simple
+            // Vista previa Derecha
             Column(
-                modifier = Modifier.weight(1f),
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(start = 24.dp),
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text("Vista previa", style = MaterialTheme.typography.headlineSmall)
+                Text(
+                    "Vista previa",
+                    style = MaterialTheme.typography.headlineSmall,
+                    color = MaterialTheme.colorScheme.primary
+                )
                 Spacer(modifier = Modifier.height(16.dp))
-                Text("Jugador: $nombre")
-                Text("Tipos de carta: $numCartas")
-                Text("Dificultad: ${dificultad.name}")
+
+                Text(
+                    "Jugador:",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Text(
+                    nombre,
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                Text(
+                    "Tipos de carta:",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Text(
+                    "$numCartas",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                Text(
+                    "Dificultad:",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Text(
+                    dificultad.name,
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
             }
         }
     } else {
-        // Para pantallas pequeñas, el formulario en una columna normal
+        // Pantallas pequeñas: columna con botones separados y colores
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(24.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            verticalArrangement = Arrangement.spacedBy(spacing)
         ) {
-            Text(text = "Configuración de Partida", style = MaterialTheme.typography.headlineMedium)
+            Text(
+                text = "Configuración de Partida",
+                style = MaterialTheme.typography.headlineLarge,
+                color = MaterialTheme.colorScheme.primary
+            )
 
             OutlinedTextField(
                 value = nombre,
                 onValueChange = { nombre = it },
                 label = { Text("Nombre del jugador") },
                 singleLine = true,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                colors = outlinedTextFieldColors(
+                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                    cursorColor = MaterialTheme.colorScheme.primary
+                )
             )
 
-            Text("Número de parejas")
+            Text(
+                "Número de tipos de carta",
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
             Slider(
                 value = numCartas.toFloat(),
                 onValueChange = { numCartas = it.toInt() },
                 valueRange = 4f..10f,
-                steps = 8,
+                steps = 6,
+                colors = SliderDefaults.colors(
+                    activeTrackColor = MaterialTheme.colorScheme.primary,
+                    thumbColor = MaterialTheme.colorScheme.primary
+                ),
                 modifier = Modifier.fillMaxWidth()
             )
-            Text("$numCartas tipos")
+            Text(
+                "$numCartas tipos",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.secondary
+            )
 
-            Text("Dificultad")
-            Row {
+            Text(
+                "Dificultad",
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
                 GameDifficulty.values().forEach { diff ->
                     Row(
                         Modifier
@@ -178,10 +302,24 @@ fun ConfigurationScreen(
                                 selected = diff == dificultad,
                                 onClick = { dificultad = diff }
                             )
-                            .padding(end = 8.dp)
+                            .padding(3.dp),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        RadioButton(selected = diff == dificultad, onClick = null)
-                        Text(text = diff.name)
+                        RadioButton(
+                            selected = diff == dificultad,
+                            onClick = null,
+                            colors = RadioButtonDefaults.colors(
+                                selectedColor = MaterialTheme.colorScheme.primary
+                            )
+                        )
+                        Text(
+                            text = diff.name,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = if (diff == dificultad)
+                                MaterialTheme.colorScheme.primary
+                            else
+                                MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                     }
                 }
             }
@@ -192,33 +330,43 @@ fun ConfigurationScreen(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                OutlinedButton(onClick = onBack) {
-                    Text("Atrás")
+                OutlinedButton(
+                    onClick = onBack,
+                    modifier = Modifier.weight(1f),
+                    shape = MaterialTheme.shapes.medium,
+                    contentPadding = PaddingValues(vertical = 14.dp)
+                ) {
+                    Text(
+                        "Atrás",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.primary
+                    )
                 }
+
+                Spacer(modifier = Modifier.width(16.dp))
 
                 Button(
                     onClick = {
                         coroutineScope.launch {
-                            // Guardamos la configuración
                             userPreferences.updatePlayerName(nombre)
                             userPreferences.updateNumCardTypes(numCartas)
                             userPreferences.updateDifficulty(dificultad)
-
-                            // Creamos la configuración para la partida
-                            val config = GameConfiguration(
-                                playerName = nombre,
-                                numCardTypes = numCartas,
-                                difficulty = dificultad
-                            )
-                            onStart(config)
+                            onStart(GameConfiguration(nombre, numCartas, dificultad))
                         }
-                    }
+                    },
+                    modifier = Modifier.weight(1f),
+                    shape = MaterialTheme.shapes.medium,
+                    contentPadding = PaddingValues(vertical = 14.dp)
                 ) {
-                    Text("Jugar")
+                    Text(
+                        "Jugar",
+                        style = MaterialTheme.typography.titleMedium
+                    )
                 }
             }
         }
     }
 }
+
 
 
