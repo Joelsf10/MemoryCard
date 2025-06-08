@@ -7,127 +7,125 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
-import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
+import com.uni.memorycard.ui.data.preferences.GameDifficulty
 import com.uni.memorycard.ui.model.GameConfiguration
 import com.uni.memorycard.ui.utils.LocalUserPreferences
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+
+
 @Composable
 fun ConfigurationScreen(
     onStart: (GameConfiguration) -> Unit,
     onBack: () -> Unit
 ) {
     val userPreferences = LocalUserPreferences.current
-    val playerName by userPreferences.playerName.collectAsState(initial = "")
-    val savedCardTypes by userPreferences.numCardTypes.collectAsState(initial = 4)
-
-    var numCardTypes by remember { mutableStateOf(savedCardTypes) }
     val coroutineScope = rememberCoroutineScope()
-    val colorScheme = MaterialTheme.colorScheme
+
+    var nombre by remember { mutableStateOf("") }
+    var numCartas by remember { mutableStateOf(4) }
+    var dificultad by remember { mutableStateOf(GameDifficulty.VERY_EASY) }
+
+    // Carga inicial desde las preferencias
+    LaunchedEffect(Unit) {
+        nombre = userPreferences.playerName.first()
+        numCartas = userPreferences.numCardTypes.first()
+        dificultad = userPreferences.difficulty.first()
+    }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(24.dp)
-            .verticalScroll(rememberScrollState())
+            .padding(24.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        Text(
-            text = "Configuración",
-            style = MaterialTheme.typography.headlineLarge.copy(
-                color = colorScheme.primary,
-                fontWeight = FontWeight.Bold
-            ),
-            modifier = Modifier.padding(bottom = 24.dp)
-        )
+        Text(text = "Configuración de Partida", style = MaterialTheme.typography.headlineMedium)
 
         OutlinedTextField(
-            value = playerName,
-            onValueChange = {
-                coroutineScope.launch {
-                    userPreferences.updatePlayerName(it)
-                }
-            },
-            label = { Text("Tu nombre") },
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 16.dp),
-            shape = RoundedCornerShape(12.dp),
+            value = nombre,
+            onValueChange = { nombre = it },
+            label = { Text("Nombre del jugador") },
             singleLine = true,
-            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done)
+            modifier = Modifier.fillMaxWidth()
         )
 
-        Text("Número de pares distintos: $numCardTypes")
+        Text("Número de tipos de carta:")
         Slider(
-            value = numCardTypes.toFloat(),
-            onValueChange = {
-                numCardTypes = it.toInt()
-                coroutineScope.launch {
-                    userPreferences.updateNumCardTypes(numCardTypes)
-                }
-            },
+            value = numCartas.toFloat(),
+            onValueChange = { numCartas = it.toInt() },
             valueRange = 4f..10f,
-            steps = 6
+            steps = 8,
+            modifier = Modifier.fillMaxWidth()
         )
+        Text("Seleccionado: $numCartas")
 
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 16.dp),
-            shape = RoundedCornerShape(12.dp)
-        ) {
-            val boardSize = if (numCardTypes <= 6) "4x4 (16 cartas)" else "5x4 (20 cartas)"
-            Text(
-                text = "Tamaño del tablero: $boardSize",
-                modifier = Modifier.padding(16.dp)
-            )
+        Text("Dificultad:")
+        GameDifficulty.values().forEach { diff ->
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { dificultad = diff }
+                    .padding(8.dp)
+            ) {
+                RadioButton(
+                    selected = dificultad == diff,
+                    onClick = { dificultad = diff }
+                )
+                Text(text = diff.label)
+            }
         }
 
+        Spacer(modifier = Modifier.height(24.dp))
+
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 24.dp),
-            horizontalArrangement = Arrangement.SpaceBetween
+            horizontalArrangement = Arrangement.SpaceBetween,
+            modifier = Modifier.fillMaxWidth()
         ) {
-            OutlinedButton(
-                onClick = onBack,
-                modifier = Modifier.weight(1f)
-            ) {
+            OutlinedButton(onClick = onBack) {
                 Text("Atrás")
             }
 
-            Spacer(modifier = Modifier.width(16.dp))
-
             Button(
                 onClick = {
-                    onStart(GameConfiguration(playerName, numCardTypes))
-                },
-                enabled = playerName.isNotBlank(),
-                modifier = Modifier.weight(1f)
+                    coroutineScope.launch {
+                        // Guardamos la configuración
+                        userPreferences.updatePlayerName(nombre)
+                        userPreferences.updateNumCardTypes(numCartas)
+                        userPreferences.updateDifficulty(dificultad)
+
+                        // Creamos la configuración para la partida
+                        val config = GameConfiguration(
+                            playerName = nombre,
+                            numCardTypes = numCartas,
+                            difficulty = dificultad
+                        )
+                        onStart(config)
+                    }
+                }
             ) {
-                Text("Iniciar partida")
+                Text("Jugar")
             }
         }
     }
 }
+

@@ -11,25 +11,39 @@ import kotlinx.coroutines.flow.map
 class UserPreferences(private val dataStore: DataStore<Preferences>) {
 
     companion object {
-        private val PLAYER_NAME_KEY = stringPreferencesKey("player_name")
-        private val NUM_CARD_TYPES_KEY = intPreferencesKey("num_card_types")
+        val PLAYER_NAME = stringPreferencesKey("player_name")
+        val NUM_CARD_TYPES = intPreferencesKey("num_card_types")
+        val DIFFICULTY = stringPreferencesKey("difficulty")
     }
 
     val playerName: Flow<String> = dataStore.data
-        .map { it[PLAYER_NAME_KEY] ?: "" }
+        .map { preferences -> preferences[PLAYER_NAME] ?: "Jugador" }
 
     val numCardTypes: Flow<Int> = dataStore.data
-        .map { it[NUM_CARD_TYPES_KEY] ?: 4 }
+        .map { preferences -> preferences[NUM_CARD_TYPES] ?: 6 }
+
+    val difficulty: Flow<GameDifficulty> = dataStore.data
+        .map { preferences ->
+            val name = preferences[DIFFICULTY] ?: GameDifficulty.VERY_EASY.name
+            GameDifficulty.valueOf(name)
+        }
 
     suspend fun updatePlayerName(name: String) {
         dataStore.edit { prefs ->
-            prefs[PLAYER_NAME_KEY] = name
+            prefs[PLAYER_NAME] = name
         }
     }
 
     suspend fun updateNumCardTypes(num: Int) {
         dataStore.edit { prefs ->
-            prefs[NUM_CARD_TYPES_KEY] = num
+            prefs[NUM_CARD_TYPES] = num
         }
     }
+
+    suspend fun updateDifficulty(difficulty: GameDifficulty) {
+        dataStore.edit { prefs ->
+            prefs[DIFFICULTY] = difficulty.name
+        }
+    }
+
 }

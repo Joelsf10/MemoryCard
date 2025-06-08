@@ -1,6 +1,10 @@
 package com.uni.memorycard.ui.model
 
+import com.uni.memorycard.ui.data.preferences.GameDifficulty
+
+
 data class GameConfiguration(
     val playerName: String = "",
-    val numCardTypes: Int = 4,  // Número de tipos de cartas distintas (4-10)
+    val numCardTypes: Int = 4,
+    val difficulty: GameDifficulty = GameDifficulty.VERY_EASY
 )

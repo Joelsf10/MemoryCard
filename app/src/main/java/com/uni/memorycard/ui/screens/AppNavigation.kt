@@ -1,51 +1,57 @@
 package com.uni.memorycard.ui.screens
 
 import androidx.activity.ComponentActivity
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
+import com.uni.memorycard.ui.data.preferences.GameDifficulty
 import com.uni.memorycard.ui.model.GameConfiguration
 import com.uni.memorycard.ui.model.GameResult
+import com.uni.memorycard.ui.model.GameViewModel
 import com.uni.memorycard.ui.utils.LocalUserPreferences
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.firstOrNull
+import com.uni.memorycard.ui.viewmodel.GameViewModelFactory
 
 
 @Composable
 fun MemoryCardNavigation() {
     val navController = rememberNavController()
-    var currentConfig by remember { mutableStateOf(GameConfiguration()) }
+    val defaultDifficulty = LocalUserPreferences.current.difficulty.collectAsState(initial = GameDifficulty.VERY_EASY).value
+    var currentConfig by remember {
+        mutableStateOf(
+            GameConfiguration(difficulty = defaultDifficulty)
+        )
+    }
     var gameResult by remember { mutableStateOf<GameResult?>(null) }
     val userPreferences = LocalUserPreferences.current
     val context = LocalContext.current
 
     NavHost(navController, startDestination = "main") {
         composable("main") {
-            var navigateToGame by remember { mutableStateOf(false) }
+            val viewModel: GameViewModel = viewModel(
+                factory = GameViewModelFactory(userPreferences)
+            )
+            val config by viewModel.config.collectAsState()
 
-            if (navigateToGame) {
-                // Efecto para recuperar preferencias y navegar solo cuando se activa
-                LaunchedEffect(Unit) {
-                    val config = combine(
-                        userPreferences.playerName,
-                        userPreferences.numCardTypes
-                    ) { name, num -> GameConfiguration(name, num) }
-                        .firstOrNull()
-
-                    config?.let {
-                        currentConfig = it
-                        navController.navigate("game")
-                        navigateToGame = false // reseteamos el trigger
-                    }
+            LaunchedEffect(config) {
+                config?.let {
+                    currentConfig = it
+                    navController.navigate("game")
+                    viewModel.resetConfig()
                 }
             }
 
             MainMenuScreen(
                 onPlay = {
-                    navigateToGame = true
+                    viewModel.loadConfigAndStartGame()
                 },
                 onHelp = { navController.navigate("help") },
                 onHistory = { navController.navigate("history") },
@@ -73,7 +79,9 @@ fun MemoryCardNavigation() {
                 config = currentConfig,
                 onGameEnd = { result ->
                     gameResult = result
-                    navController.navigate("results")
+                    navController.navigate("results") {
+                        popUpTo("game") { inclusive = true } // limpia el backstack hasta la partida
+                    }
                 },
                 onBack = { navController.popBackStack() }
             )
