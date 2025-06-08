@@ -17,6 +17,7 @@ import com.uni.memorycard.ui.data.preferences.GameDifficulty
 import com.uni.memorycard.ui.model.GameConfiguration
 import com.uni.memorycard.ui.model.GameResult
 import com.uni.memorycard.ui.model.GameViewModel
+import com.uni.memorycard.ui.utils.LocalDatabase
 import com.uni.memorycard.ui.utils.LocalUserPreferences
 import com.uni.memorycard.ui.viewmodel.GameViewModelFactory
 
@@ -33,6 +34,8 @@ fun MemoryCardNavigation() {
     var gameResult by remember { mutableStateOf<GameResult?>(null) }
     val userPreferences = LocalUserPreferences.current
     val context = LocalContext.current
+    val database = LocalDatabase.current
+    val results by database.gameResultDao().getAllResults().collectAsState(initial = emptyList())
 
     NavHost(navController, startDestination = "main") {
         composable("main") {
@@ -102,7 +105,7 @@ fun MemoryCardNavigation() {
         }
 
         composable("history") {
-            HistoryScreen { navController.popBackStack() }
+            HistoryScreen(results = results, onBack = { navController.popBackStack() })
         }
     }
 }
